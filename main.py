@@ -59,6 +59,7 @@ def main():
     devices = None
     dht_sensor = None
     mqtt_client = None
+    mqtt_publisher = None
 
     try:
         # ------------------------------------------
@@ -125,48 +126,60 @@ def main():
             lighting_controller=system.lighting_controller,
         )
 
-        buzzer_control = BuzzerControl(
-            button=devices["silence_button"],
-            buzzer=devices["buzzer"],
-        )
+        buzzer_control = system.buzzer_control
 
-        mqtt_module = load_mqtt_module()
-        mqtt_client = RaspberryMQTTClient(
-            mqtt_module=mqtt_module,
-            host=MQTT_HOST,
-            port=MQTT_PORT,
-            keepalive=MQTT_KEEPALIVE,
-        )
+        # ------------------------------------------
+        # MQTT
+        # ------------------------------------------
+        try:
+            mqtt_module = load_mqtt_module()
 
-        mqtt_publisher = MQTTPublisher(
-            client=mqtt_client,
-        )
+            mqtt_client = RaspberryMQTTClient(
+                mqtt_module=mqtt_module,
+                host=MQTT_HOST,
+                port=MQTT_PORT,
+                keepalive=MQTT_KEEPALIVE,
+            )
 
-        mqtt_subscriber = MQTTSubscriber(
-            client=mqtt_client,
-            servo=devices["servo"],
-            lighting_controller=system.lighting_controller,
-            fan=devices["fan"],
-            buzzer_control=buzzer_control,
-        )
+            mqtt_publisher = MQTTPublisher(
+                client=mqtt_client,
+            )
 
-        remote_control = RemoteControlHandler(
-            subscriber=mqtt_subscriber,
-            publisher=mqtt_publisher,
-        )
+            mqtt_subscriber = MQTTSubscriber(
+                client=mqtt_client,
+                servo=devices["servo"],
+                lighting_controller=system.lighting_controller,
+                fan=devices["fan"],
+                buzzer_control=buzzer_control,
+            )
 
-        mqtt_client.set_message_handler(
-            remote_control.process
-        )
+            remote_control = RemoteControlHandler(
+                subscriber=mqtt_subscriber,
+                publisher=mqtt_publisher,
+            )
 
-        mqtt_client.connect()
-        mqtt_subscriber.subscribe()
-        mqtt_client.start()
+            mqtt_client.set_message_handler(
+                remote_control.process
+            )
 
-        print(
-            f"MQTT conectado a "
-            f"{MQTT_HOST}:{MQTT_PORT}"
-        )
+            mqtt_client.connect()
+            mqtt_subscriber.subscribe()
+            mqtt_client.start()
+
+            print(
+                f"MQTT conectado a "
+                f"{MQTT_HOST}:{MQTT_PORT}"
+            )
+
+        except Exception as exc:
+            print(
+                "MQTT no disponible. "
+                "El sistema continuará funcionando "
+                f"localmente: {exc}"
+            )
+
+            mqtt_client = None
+            mqtt_publisher = None
 
         reset_control = ResetControl(
             button=devices["reset_button"],
@@ -224,9 +237,15 @@ def main():
             try:
                 snapshot = runtime.run_once()
 
-                mqtt_publisher.publish_snapshot(
-                    snapshot
-                )
+                if mqtt_publisher is not None:
+                    try:
+                        mqtt_publisher.publish_snapshot(
+                            snapshot
+                        )
+                    except Exception as exc:
+                        print(
+                            f"Error publicando MQTT: {exc}"
+                        )
 
                 pressed_buttons = button_manager.read_pressed()
                 danger_active = (
@@ -259,9 +278,16 @@ def main():
                             arm64_output["results"],
                         )
 
-                        mqtt_publisher.publish_arm64_results(
-                            arm64_output["results"]
-                        )
+                        if mqtt_publisher is not None:
+                            try:
+                                mqtt_publisher.publish_arm64_results(
+                                    arm64_output["results"]
+                                )
+                            except Exception as exc:
+                                print(
+                                    f"Error publicando resultados ARM64 "
+                                    f"por MQTT: {exc}"
+                                )
 
                     except (
                         FileNotFoundError,

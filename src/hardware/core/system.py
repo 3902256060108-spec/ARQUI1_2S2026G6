@@ -50,6 +50,11 @@ class HardwareSystem:
         else:
             self.lcd = LCDDisplay()
 
+        self.buzzer_control = BuzzerControl(
+            button=self.hardware["silence_button"],
+            buzzer=self.hardware["buzzer"],
+        )
+
         self.system_controller = SystemController(
             normal_led=self.hardware["normal_led"],
             warning_led=self.hardware["warning_led"],
@@ -60,6 +65,7 @@ class HardwareSystem:
             temp_max=TEMP_MAX,
             humidity_min=HUMIDITY_MIN,
             humidity_max=HUMIDITY_MAX,
+            buzzer_control=self.buzzer_control,
         )
 
         self.door_controller = DoorController(
