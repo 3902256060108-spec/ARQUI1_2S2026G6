@@ -85,3 +85,26 @@ class LightingController:
     def _turn_off_lights(self):
         for light in self.lights:
             light.turn_off()
+
+    def update_automatic_digital(self, is_dark):
+        """
+        Actualiza la iluminación automática usando
+        directamente la salida digital del sensor LDR.
+
+        is_dark:
+            True  -> oscuridad detectada
+            False -> suficiente iluminación
+        """
+
+        if self.mode != LightingMode.AUTOMATIC:
+            return
+
+        if not isinstance(is_dark, bool):
+            raise TypeError(
+                "is_dark debe ser un valor booleano."
+            )
+
+        if is_dark:
+            self._turn_on_lights()
+        else:
+            self._turn_off_lights()
