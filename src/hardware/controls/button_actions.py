@@ -1,7 +1,6 @@
 class ButtonActions:
     """
-    Ejecuta las acciones asociadas a los
-    cuatro botones físicos del sistema.
+    Ejecuta las acciones correspondientes a los botones físicos.
     """
 
     def __init__(
@@ -17,18 +16,33 @@ class ButtonActions:
         self.reset_control = reset_control
 
     def process(self, pressed_buttons, danger_active=False):
+        """
+        Procesa los botones detectados por ButtonManager.
+        """
+
+        results = {}
+
         for button in pressed_buttons:
 
             if button == "door":
-                self.door_control.toggle_door()
+                results["door"] = (
+                    self.door_control.handle_press()
+                )
 
             elif button == "light_mode":
-                self.lighting_mode_control.toggle_mode()
+                results["light_mode"] = (
+                    self.lighting_mode_control.handle_press()
+                )
 
             elif button == "silence":
                 self.buzzer_control.silence()
+                results["silence"] = True
 
             elif button == "reset":
-                self.reset_control.reset(
-                    danger_active=danger_active
+                results["reset"] = (
+                    self.reset_control.reset_alert(
+                        danger_active=danger_active
+                    )
                 )
+
+        return results

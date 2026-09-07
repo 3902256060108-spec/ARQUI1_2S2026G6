@@ -9,6 +9,32 @@ import time
 from src.hardware.core.system import HardwareSystem
 from src.hardware.core.runtime import HardwareRuntime
 from src.hardware.drivers.raspberry_pi.gpio_driver import GPIODriver
+from src.hardware.controls.button_manager import ButtonManager
+from src.hardware.controls.button_actions import ButtonActions
+from src.hardware.controls.door_control import DoorControl
+from src.hardware.controls.lighting_mode_control import LightingModeControl
+from src.hardware.controls.buzzer_control import BuzzerControl
+from src.hardware.controls.reset_control import ResetControl
+from src.hardware.mqtt.mqtt_adapter import (
+    load_mqtt_module,
+)
+from src.hardware.mqtt.mqtt_client import (
+    RaspberryMQTTClient,
+)
+from src.hardware.mqtt.publisher import (
+    MQTTPublisher,
+)
+from src.hardware.mqtt.subscriber import (
+    MQTTSubscriber,
+)
+from src.hardware.mqtt.remote_control import (
+    RemoteControlHandler,
+)
+from src.hardware.mqtt.config import (
+    MQTT_HOST,
+    MQTT_PORT,
+    MQTT_KEEPALIVE,
+)
 from src.hardware.drivers.raspberry_pi.rpi_gpio_adapter import (
     load_rpi_gpio,
 )
@@ -32,6 +58,7 @@ def main():
     gpio_driver = None
     devices = None
     dht_sensor = None
+    mqtt_client = None
 
     try:
         # ------------------------------------------
@@ -88,6 +115,78 @@ def main():
             sensors=sensors,
         )
 
+        door_control = DoorControl(
+            button=devices["door_button"],
+            servo=devices["servo"],
+        )
+
+        lighting_mode_control = LightingModeControl(
+            button=devices["light_mode_button"],
+            lighting_controller=system.lighting_controller,
+        )
+
+        buzzer_control = BuzzerControl(
+            button=devices["silence_button"],
+            buzzer=devices["buzzer"],
+        )
+
+        mqtt_module = load_mqtt_module()
+        mqtt_client = RaspberryMQTTClient(
+            mqtt_module=mqtt_module,
+            host=MQTT_HOST,
+            port=MQTT_PORT,
+            keepalive=MQTT_KEEPALIVE,
+        )
+
+        mqtt_publisher = MQTTPublisher(
+            client=mqtt_client,
+        )
+
+        mqtt_subscriber = MQTTSubscriber(
+            client=mqtt_client,
+            servo=devices["servo"],
+            lighting_controller=system.lighting_controller,
+            fan=devices["fan"],
+            buzzer_control=buzzer_control,
+        )
+
+        remote_control = RemoteControlHandler(
+            subscriber=mqtt_subscriber,
+            publisher=mqtt_publisher,
+        )
+
+        mqtt_client.set_message_handler(
+            remote_control.process
+        )
+
+        mqtt_client.connect()
+        mqtt_subscriber.subscribe()
+        mqtt_client.start()
+
+        print(
+            f"MQTT conectado a "
+            f"{MQTT_HOST}:{MQTT_PORT}"
+        )
+
+        reset_control = ResetControl(
+            button=devices["reset_button"],
+            buzzer_control=buzzer_control,
+        )
+
+        button_manager = ButtonManager(
+            door_button=devices["door_button"],
+            light_mode_button=devices["light_mode_button"],
+            silence_button=devices["silence_button"],
+            reset_button=devices["reset_button"],
+        )
+
+        button_actions = ButtonActions(
+            door_control=door_control,
+            lighting_mode_control=lighting_mode_control,
+            buzzer_control=buzzer_control,
+            reset_control=reset_control,
+        )
+
         runtime = HardwareRuntime(
             system=system,
             dht_sensor=dht_sensor,
@@ -124,6 +223,54 @@ def main():
         while True:
             try:
                 snapshot = runtime.run_once()
+
+                mqtt_publisher.publish_snapshot(
+                    snapshot
+                )
+
+                pressed_buttons = button_manager.read_pressed()
+                danger_active = (
+                    snapshot["state"].value == "EMERGENCIA"
+                )
+
+                button_results = button_actions.process(
+                    pressed_buttons,
+                    danger_active=danger_active,
+                )
+
+                if button_results:
+                    print(
+                        "Acciones de botones:",
+                        button_results,
+                    )
+
+                arm64_ready = temperature_arm64.add_temperature(
+                    snapshot["temperature"]
+                )
+
+                if arm64_ready:
+                    try:
+                        arm64_output = (
+                            temperature_arm64.process_collected()
+                        )
+
+                        print(
+                            "Resultados ARM64:",
+                            arm64_output["results"],
+                        )
+
+                        mqtt_publisher.publish_arm64_results(
+                            arm64_output["results"]
+                        )
+
+                    except (
+                        FileNotFoundError,
+                        RuntimeError,
+                        ValueError,
+                    ) as exc:
+                        print(
+                            f"Error ejecutando ARM64: {exc}"
+                        )
 
                 print(
                     f"T={snapshot['temperature']:.1f}C | "

@@ -25,6 +25,20 @@ class ButtonManager:
             for name in self.buttons
         }
 
+    def _read_button(self, button):
+        """
+        Permite trabajar tanto con el driver físico,
+        donde is_pressed es una propiedad, como con
+        botones simulados usados en las pruebas.
+        """
+
+        value = button.is_pressed
+
+        if callable(value):
+            value = value()
+
+        return bool(value)
+
     def read_pressed(self):
         """
         Retorna los botones que acaban de ser presionados.
@@ -33,7 +47,7 @@ class ButtonManager:
         pressed = []
 
         for name, button in self.buttons.items():
-            current = button.is_pressed()
+            current = self._read_button(button)
 
             if current and not self._previous_states[name]:
                 pressed.append(name)
