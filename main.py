@@ -336,6 +336,13 @@ def main():
                 if callable(exit_method):
                     exit_method()
 
+        if mqtt_client is not None:
+            try:
+                mqtt_client.stop()
+                mqtt_client.disconnect()
+            except Exception:
+                pass
+
         if gpio_driver is not None:
             gpio_driver.cleanup()
 
