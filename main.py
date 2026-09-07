@@ -21,6 +21,9 @@ from src.hardware.drivers.raspberry_pi.dht_adapter import (
 from src.hardware.drivers.raspberry_pi.dht_factory import (
     create_dht_sensor,
 )
+from src.hardware.integration.temperature_arm64 import (
+    TemperatureARM64,
+)
 
 
 def main():
@@ -93,6 +96,11 @@ def main():
             ultrasonic_sensor=devices["ultrasonic"],
         )
 
+        temperature_arm64 = TemperatureARM64(
+            dht_sensor=dht_sensor,
+            sample_count=20,
+        )
+
         print("Sistema lógico conectado al hardware.")
 
         print("DHT11 inicializado correctamente.")
@@ -145,6 +153,20 @@ def main():
             except Exception:
                 pass
 
+            try:
+                devices["buzzer"].turn_off()
+                devices["fan"].turn_off()
+
+                devices["normal_led"].turn_off()
+                devices["warning_led"].turn_off()
+                devices["emergency_led"].turn_off()
+
+                devices["light_1"].turn_off()
+                devices["light_2"].turn_off()
+
+            except Exception:
+                pass
+            
             try:
                 devices["servo"].stop()
             except Exception:
