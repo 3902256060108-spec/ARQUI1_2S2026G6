@@ -20,4 +20,4 @@ DOOR_OPEN_TIME = 5
 
 # Los sensores MQ y LDR requieren calibración física.
 GAS_THRESHOLD = None
-LIGHT_THRESHOLD = None
+LIGHT_THRESHOLD = 500
