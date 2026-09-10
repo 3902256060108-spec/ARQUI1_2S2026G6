@@ -6,7 +6,7 @@ class RaspberryLightSensor:
     potenciómetro del módulo.
     """
 
-    def __init__(self, pin, gpio_driver, active_low=True):
+    def __init__(self, pin, gpio_driver, active_low=False):
         self.pin = pin
         self.gpio = gpio_driver
         self.active_low = active_low
