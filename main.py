@@ -298,9 +298,21 @@ def main():
                             f"Error ejecutando ARM64: {exc}"
                         )
 
+                temperature_text = (
+                    f"{snapshot['temperature']:.1f}C"
+                    if snapshot["temperature"] is not None
+                    else "N/A"
+                )
+
+                humidity_text = (
+                    f"{snapshot['humidity']:.1f}%"
+                    if snapshot["humidity"] is not None
+                    else "N/A"
+                )
+
                 print(
-                    f"T={snapshot['temperature']:.1f}C | "
-                    f"H={snapshot['humidity']:.1f}% | "
+                    f"T={temperature_text} | "
+                    f"H={humidity_text} | "
                     f"GAS={snapshot['gas_alert']} | "
                     f"OSCURO={snapshot['is_dark']} | "
                     f"DIST={snapshot['distance_cm']:.1f}cm | "

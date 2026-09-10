@@ -35,9 +35,21 @@ class LCDDisplay:
         self._line2 = ""
 
     def show_temperature_humidity(self, temperature, humidity):
+        temperature_text = (
+            f"{temperature:.1f}C"
+            if temperature is not None
+            else "N/A"
+        )
+
+        humidity_text = (
+            f"{humidity:.1f}%"
+            if humidity is not None
+            else "N/A"
+        )
+
         self.show(
-            f"Temp: {temperature:.1f}C",
-            f"Humedad: {humidity:.1f}%"
+            f"Temp: {temperature_text}",
+            f"Humedad: {humidity_text}",
         )
 
     def show_gas(self, value):

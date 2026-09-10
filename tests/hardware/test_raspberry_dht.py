@@ -75,7 +75,7 @@ def test_dht_returns_floats():
     assert isinstance(reading["humidity"], float)
 
 
-def test_dht_rejects_missing_temperature():
+def test_dht_returns_none_when_temperature_is_missing():
     device = FakeDHTDevice(
         temperature=None,
         humidity=50.0,
@@ -86,11 +86,15 @@ def test_dht_rejects_missing_temperature():
         dht_device=device,
     )
 
-    with pytest.raises(RuntimeError):
-        sensor.read()
+    result = sensor.read()
+
+    assert result == {
+        "temperature": None,
+        "humidity": None,
+    }
 
 
-def test_dht_rejects_missing_humidity():
+def test_dht_returns_none_when_humidity_is_missing():
     device = FakeDHTDevice(
         temperature=25.0,
         humidity=None,
@@ -101,5 +105,9 @@ def test_dht_rejects_missing_humidity():
         dht_device=device,
     )
 
-    with pytest.raises(RuntimeError):
-        sensor.read()
+    result = sensor.read()
+
+    assert result == {
+        "temperature": None,
+        "humidity": None,
+    }
