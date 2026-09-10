@@ -27,15 +27,20 @@ class MQTTPublisher:
         )
 
     def publish_snapshot(self, snapshot):
-        self.publish_sensor_value(
-            topics.TEMPERATURE_TOPIC,
-            snapshot["temperature"],
-        )
+        temperature = snapshot["temperature"]
+        humidity = snapshot["humidity"]
 
-        self.publish_sensor_value(
-            topics.HUMIDITY_TOPIC,
-            snapshot["humidity"],
-        )
+        if temperature is not None:
+            self.publish_sensor_value(
+                topics.TEMPERATURE_TOPIC,
+                temperature,
+            )
+
+        if humidity is not None:
+            self.publish_sensor_value(
+                topics.HUMIDITY_TOPIC,
+                humidity,
+            )
 
         self.publish_sensor_value(
             topics.GAS_TOPIC,
