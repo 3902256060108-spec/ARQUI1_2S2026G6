@@ -316,11 +316,17 @@ def main():
                     else "N/A"
                 )
 
+                light_text = (
+                    "OSCURO" if snapshot["is_dark"] is True
+                    else "CLARO" if snapshot["is_dark"] is False
+                    else "N/A"
+                )
+
                 print(
                     f"T={temperature_text} | "
                     f"H={humidity_text} | "
                     f"GAS={snapshot['gas_alert']} | "
-                    f"OSCURO={snapshot['is_dark']} | "
+                    f"LUZ={light_text} | "
                     f"DIST={distance_text} | "
                     f"ESTADO={snapshot['state'].value}"
                 )
