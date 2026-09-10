@@ -13,7 +13,7 @@ HUMIDITY_MIN = 30.0
 HUMIDITY_MAX = 70.0
 
 # Distancia para detección de presencia (cm)
-DISTANCE_THRESHOLD = 30.0
+DISTANCE_THRESHOLD = 5.0
 
 # Tiempo que permanece abierta la puerta (segundos)
 DOOR_OPEN_TIME = 5

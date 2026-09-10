@@ -149,3 +149,57 @@ class RaspberryLCD:
         self._line2 = ""
 
         self._sleep(0.005)
+
+    def show_temperature_humidity(self, temperature, humidity):
+        temperature_text = (
+            f"{temperature:.1f}C"
+            if temperature is not None
+            else "N/A"
+        )
+
+        humidity_text = (
+            f"{humidity:.1f}%"
+            if humidity is not None
+            else "N/A"
+        )
+
+        self.show(
+            f"Temp: {temperature_text}",
+            f"Humedad: {humidity_text}",
+        )
+
+    def show_gas(self, value):
+        self.show(
+            "Gas/Humo:",
+            str(value),
+        )
+
+    def show_distance(self, distance_cm):
+        distance_text = (
+            f"{distance_cm:.1f} cm"
+            if distance_cm is not None
+            else "N/A"
+        )
+
+        self.show(
+            "Distancia:",
+            distance_text,
+        )
+
+    def show_light(self, value):
+        self.show(
+            "Luz:",
+            str(value),
+        )
+
+    def show_door(self, state):
+        self.show(
+            "Puerta:",
+            str(state),
+        )
+
+    def show_system_state(self, state):
+        self.show(
+            "Estado:",
+            str(state),
+        )
