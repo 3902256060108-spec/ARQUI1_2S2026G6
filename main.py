@@ -310,12 +310,18 @@ def main():
                     else "N/A"
                 )
 
+                distance_text = (
+                    f"{snapshot['distance_cm']:.1f}cm"
+                    if snapshot["distance_cm"] is not None
+                    else "N/A"
+                )
+
                 print(
                     f"T={temperature_text} | "
                     f"H={humidity_text} | "
                     f"GAS={snapshot['gas_alert']} | "
                     f"OSCURO={snapshot['is_dark']} | "
-                    f"DIST={snapshot['distance_cm']:.1f}cm | "
+                    f"DIST={distance_text} | "
                     f"ESTADO={snapshot['state'].value}"
                 )
 

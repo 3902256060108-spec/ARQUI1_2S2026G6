@@ -37,9 +37,15 @@ class DoorController:
 
         Si deja de detectar presencia:
             - mantiene la puerta abierta hasta que
-              transcurra open_time;
+            transcurra open_time;
             - luego la cierra.
+
+        Si no hay una lectura válida del sensor,
+        conserva el estado actual de la puerta.
         """
+
+        if distance_cm is None:
+            return self.servo.door_state
 
         if distance_cm < 0:
             raise ValueError("La distancia no puede ser negativa.")

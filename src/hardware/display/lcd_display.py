@@ -59,9 +59,15 @@ class LCDDisplay:
         )
 
     def show_distance(self, distance_cm):
+        distance_text = (
+            f"{distance_cm:.1f} cm"
+            if distance_cm is not None
+            else "N/A"
+        )
+
         self.show(
             "Distancia:",
-            f"{distance_cm:.1f} cm"
+            distance_text,
         )
 
     def show_light(self, value):

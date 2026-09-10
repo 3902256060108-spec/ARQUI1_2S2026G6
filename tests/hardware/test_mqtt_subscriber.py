@@ -155,13 +155,13 @@ def test_remote_fan_on():
     assert result == "ENCENDIDO"
 
 
-def test_remote_alarm_silence():
+def test_remote_alarm_deactivate():
     subscriber, _, _, _, _, buzzer = (
         create_subscriber()
     )
 
     result = subscriber.process_payload(
-        '{"dispositivo":"alarma","accion":"SILENCIAR"}'
+        '{"dispositivo":"alarma","accion":"DESACTIVAR"}'
     )
 
     assert buzzer.silence_calls == 1

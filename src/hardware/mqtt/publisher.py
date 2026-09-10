@@ -29,6 +29,9 @@ class MQTTPublisher:
     def publish_snapshot(self, snapshot):
         temperature = snapshot["temperature"]
         humidity = snapshot["humidity"]
+        gas_alert = snapshot["gas_alert"]
+        distance_cm = snapshot["distance_cm"]
+        is_dark = snapshot["is_dark"]
 
         if temperature is not None:
             self.publish_sensor_value(
@@ -42,20 +45,23 @@ class MQTTPublisher:
                 humidity,
             )
 
-        self.publish_sensor_value(
-            topics.GAS_TOPIC,
-            snapshot["gas_alert"],
-        )
+        if gas_alert is not None:
+            self.publish_sensor_value(
+                topics.GAS_TOPIC,
+                gas_alert,
+            )
 
-        self.publish_sensor_value(
-            topics.DISTANCE_TOPIC,
-            snapshot["distance_cm"],
-        )
+        if distance_cm is not None:
+            self.publish_sensor_value(
+                topics.DISTANCE_TOPIC,
+                distance_cm,
+            )
 
-        self.publish_sensor_value(
-            topics.LIGHT_TOPIC,
-            snapshot["is_dark"],
-        )
+        if is_dark is not None:
+            self.publish_sensor_value(
+                topics.LIGHT_TOPIC,
+                is_dark,
+            )
 
         self._publish_json(
             topics.GLOBAL_STATE_TOPIC,

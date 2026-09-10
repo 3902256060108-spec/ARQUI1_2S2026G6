@@ -116,7 +116,7 @@ class MQTTSubscriber:
         )
 
     def _control_alarm(self, action):
-        if action == "SILENCIAR":
+        if action == "DESACTIVAR":
             self.buzzer_control.silence()
             return "INACTIVA"
 
