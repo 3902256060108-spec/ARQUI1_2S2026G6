@@ -14,22 +14,34 @@ class RaspberryDHT:
         """
         Retorna temperatura y humedad.
 
+        Si el DHT11 no entrega una lectura válida,
+        retorna None en ambos valores sin detener
+        el resto del sistema.
+
         Formato:
         {
-            "temperature": float,
-            "humidity": float
+            "temperature": float | None,
+            "humidity": float | None
         }
         """
 
-        temperature = self.device.temperature
-        humidity = self.device.humidity
+        try:
+            temperature = self.device.temperature
+            humidity = self.device.humidity
 
-        if temperature is None or humidity is None:
-            raise RuntimeError(
-                "No se pudo obtener una lectura válida del DHT11."
-            )
+            if temperature is None or humidity is None:
+                return {
+                    "temperature": None,
+                    "humidity": None,
+                }
 
-        return {
-            "temperature": float(temperature),
-            "humidity": float(humidity),
-        }
+            return {
+                "temperature": float(temperature),
+                "humidity": float(humidity),
+            }
+
+        except RuntimeError:
+            return {
+                "temperature": None,
+                "humidity": None,
+            }

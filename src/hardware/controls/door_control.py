@@ -12,10 +12,6 @@ class DoorControl:
         Alterna manualmente el estado de la puerta.
         """
 
-        self.button.press()
-
         self.servo.toggle_door()
-
-        self.button.release()
 
         return self.servo.door_state

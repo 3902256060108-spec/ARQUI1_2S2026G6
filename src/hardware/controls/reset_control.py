@@ -19,13 +19,9 @@ class ResetControl:
             False -> si todavía existe peligro.
         """
 
-        self.button.press()
-
         if danger_active:
-            self.button.release()
             return False
 
         self.buzzer_control.reset_silence()
 
-        self.button.release()
         return True

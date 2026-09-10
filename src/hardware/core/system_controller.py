@@ -23,11 +23,13 @@ class SystemController:
         temp_max,
         humidity_min,
         humidity_max,
+        buzzer_control=None,
     ):
         self.normal_led = normal_led
         self.warning_led = warning_led
         self.emergency_led = emergency_led
         self.buzzer = buzzer
+        self.buzzer_control = buzzer_control
         self.servo = servo
         self.fan = fan
 
@@ -79,6 +81,11 @@ class SystemController:
 
         elif self.state == SystemState.EMERGENCY:
             self.emergency_led.turn_on()
-            self.buzzer.turn_on()
+
+            if self.buzzer_control is not None:
+                self.buzzer_control.activate_alarm()
+            else:
+                self.buzzer.turn_on()
+
             self.fan.turn_on()
             self.servo.open_door()

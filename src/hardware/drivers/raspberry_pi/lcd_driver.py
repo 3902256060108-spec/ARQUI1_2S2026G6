@@ -1,14 +1,22 @@
+import time
+
+
 class RaspberryLCD:
     """
-    Driver base para LCD 1602A en modo paralelo de 4 bits.
-
-    Utiliza:
-    - RS
-    - E (Enable)
-    - D4, D5, D6, D7
-
-    El pin RW del LCD se conectará físicamente a GND.
+    Driver para LCD 1602A compatible con HD44780
+    usando interfaz paralela de 4 bits.
     """
+
+    LCD_WIDTH = 16
+
+    LCD_CHR = 1
+    LCD_CMD = 0
+
+    LINE_1 = 0x80
+    LINE_2 = 0xC0
+
+    ENABLE_PULSE = 0.0005
+    ENABLE_DELAY = 0.0005
 
     def __init__(
         self,
@@ -19,9 +27,11 @@ class RaspberryLCD:
         d6_pin,
         d7_pin,
         gpio_driver,
+        sleep_provider=None,
     ):
         self.rs_pin = rs_pin
         self.enable_pin = enable_pin
+
         self.data_pins = [
             d4_pin,
             d5_pin,
@@ -30,6 +40,7 @@ class RaspberryLCD:
         ]
 
         self.gpio = gpio_driver
+        self._sleep = sleep_provider or time.sleep
 
         self._line1 = ""
         self._line2 = ""
@@ -57,15 +68,84 @@ class RaspberryLCD:
         for pin in self.data_pins:
             self.gpio.write_low(pin)
 
-    def show(self, line1="", line2=""):
+    def _pulse_enable(self):
+        self._sleep(self.ENABLE_DELAY)
+
+        self.gpio.write_high(self.enable_pin)
+        self._sleep(self.ENABLE_PULSE)
+
+        self.gpio.write_low(self.enable_pin)
+        self._sleep(self.ENABLE_DELAY)
+
+    def _write_nibble(self, nibble):
+        for index, pin in enumerate(self.data_pins):
+            if nibble & (1 << index):
+                self.gpio.write_high(pin)
+            else:
+                self.gpio.write_low(pin)
+
+        self._pulse_enable()
+
+    def send_byte(self, value, mode):
+        if mode == self.LCD_CHR:
+            self.gpio.write_high(self.rs_pin)
+        else:
+            self.gpio.write_low(self.rs_pin)
+
+        high_nibble = (value >> 4) & 0x0F
+        low_nibble = value & 0x0F
+
+        self._write_nibble(high_nibble)
+        self._write_nibble(low_nibble)
+
+    def initialize(self):
         """
-        Guarda el contenido que posteriormente
-        será enviado físicamente al LCD.
+        Secuencia básica de inicialización del HD44780
+        en modo de 4 bits y display de 2 líneas.
         """
 
-        self._line1 = str(line1)[:16]
-        self._line2 = str(line2)[:16]
+        self.send_byte(0x33, self.LCD_CMD)
+        self.send_byte(0x32, self.LCD_CMD)
+        self.send_byte(0x06, self.LCD_CMD)
+        self.send_byte(0x0C, self.LCD_CMD)
+        self.send_byte(0x28, self.LCD_CMD)
+        self.send_byte(0x01, self.LCD_CMD)
+
+        self._sleep(0.005)
+
+    def _write_text(self, text):
+        text = str(text)[:self.LCD_WIDTH]
+        text = text.ljust(self.LCD_WIDTH)
+
+        for character in text:
+            self.send_byte(
+                ord(character),
+                self.LCD_CHR,
+            )
+
+    def show(self, line1="", line2=""):
+        self._line1 = str(line1)[:self.LCD_WIDTH]
+        self._line2 = str(line2)[:self.LCD_WIDTH]
+
+        self.send_byte(
+            self.LINE_1,
+            self.LCD_CMD,
+        )
+        self._write_text(self._line1)
+
+        self.send_byte(
+            self.LINE_2,
+            self.LCD_CMD,
+        )
+        self._write_text(self._line2)
 
     def clear(self):
+        self.send_byte(
+            0x01,
+            self.LCD_CMD,
+        )
+
         self._line1 = ""
         self._line2 = ""
+
+        self._sleep(0.005)
