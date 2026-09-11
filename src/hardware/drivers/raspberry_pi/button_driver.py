@@ -14,7 +14,7 @@ class RaspberryButton:
 
     @property
     def is_pressed(self):
-        return self.gpio.read(self.pin) == self.gpio.HIGH
+        return self.gpio.read(self.pin) == self.gpio.LOW
 
     def read(self):
         return self.is_pressed

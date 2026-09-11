@@ -28,76 +28,58 @@ class HardwareSystem:
     """
     Ensambla todos los componentes lógicos del sistema.
     """
-
-    def __init__(self):
-        # --------------------------------------------------
-        # Hardware base
-        # --------------------------------------------------
-        self.hardware = create_hardware()
-        self.sensors = create_sensors()
-
-        # --------------------------------------------------
-        # Control global
-        # --------------------------------------------------
-        self.system_controller = SystemController(
-            normal_led=self.hardware["normal_led"],
-            warning_led=self.hardware["warning_led"],
-            emergency_led=self.hardware["emergency_led"],
-            buzzer=self.hardware["buzzer"],
-            servo=self.hardware["servo"],
-            fan=self.hardware["fan"],
-            temp_max=TEMP_MAX,
-            humidity_min=HUMIDITY_MIN,
-            humidity_max=HUMIDITY_MAX,
+    def __init__(
+        self,
+        hardware=None,
+        sensors=None,
+    ):
+        self.hardware = (
+            hardware
+            if hardware is not None
+            else create_hardware()
         )
 
-        # --------------------------------------------------
-        # Puerta automática
-        # --------------------------------------------------
-        self.door_controller = DoorController(
-            servo=self.hardware["servo"],
-            distance_threshold=DISTANCE_THRESHOLD,
-            open_time=DOOR_OPEN_TIME,
+        self.sensors = (
+            sensors
+            if sensors is not None
+            else create_sensors()
         )
 
-        # --------------------------------------------------
-        # Iluminación
-        # --------------------------------------------------
-        self.lighting_controller = LightingController(
-            lights=[
-                self.hardware["light_1"],
-                self.hardware["light_2"],
-            ],
-            light_threshold=LIGHT_THRESHOLD,
-        )
-
-        # --------------------------------------------------
-        # Controles físicos
-        # --------------------------------------------------
-        self.door_control = DoorControl(
-            button=self.hardware["door_button"],
-            servo=self.hardware["servo"],
-        )
-
-        self.lighting_mode_control = LightingModeControl(
-            button=self.hardware["light_mode_button"],
-            lighting_controller=self.lighting_controller,
-        )
+        if "lcd" in self.hardware:
+            self.lcd = self.hardware["lcd"]
+        else:
+            self.lcd = LCDDisplay()
 
         self.buzzer_control = BuzzerControl(
             button=self.hardware["silence_button"],
             buzzer=self.hardware["buzzer"],
         )
 
-        self.reset_control = ResetControl(
-            button=self.hardware["reset_button"],
+        self.system_controller = SystemController(
+            normal_led=self.hardware["normal_led"],
+            warning_led=self.hardware["warning_led"],
+            emergency_led=self.hardware["emergency_led"],
+            buzzer=self.hardware["buzzer"],
+            fan=self.hardware["fan"],
+            servo=self.hardware["servo"],
+            temp_max=TEMP_MAX,
+            humidity_min=HUMIDITY_MIN,
+            humidity_max=HUMIDITY_MAX,
             buzzer_control=self.buzzer_control,
         )
 
-        # --------------------------------------------------
-        # LCD
-        # --------------------------------------------------
-        self.lcd = LCDDisplay()
+        self.door_controller = DoorController(
+            servo=self.hardware["servo"],
+            distance_threshold=DISTANCE_THRESHOLD,
+        )
+
+        self.lighting_controller = LightingController(
+            [
+                self.hardware["light_1"],
+                self.hardware["light_2"],
+            ],
+            light_threshold=LIGHT_THRESHOLD,
+        )
 
         self.display_controller = DisplayController(
             self.lcd
@@ -109,7 +91,7 @@ class HardwareSystem:
         humidity,
         gas_alert,
         distance_cm,
-        light_value,
+        light_value=None,
     ):
         """
         Actualiza el sistema completo a partir de
@@ -132,8 +114,9 @@ class HardwareSystem:
             )
 
         # 3. Iluminación automática
-        self.lighting_controller.update_automatic(
-            light_value=light_value
-        )
+        if light_value is not None:
+            self.lighting_controller.update_automatic(
+                light_value=light_value
+            )
 
         return state

@@ -101,3 +101,38 @@ def test_lcd_can_clear():
 
     assert lcd.line1 == ""
     assert lcd.line2 == ""
+
+def test_lcd_initialize_sends_commands():
+    fake, lcd = create_lcd()
+
+    lcd.initialize()
+
+    # Después de inicializar, el pin RS debe terminar
+    # en modo comando (LOW) al enviar el último comando.
+    assert fake.outputs[lcd.rs_pin] == fake.LOW
+
+
+def test_lcd_show_updates_internal_lines():
+    fake, lcd = create_lcd()
+
+    lcd.show(
+        "Temp 25C",
+        "Estado NORMAL",
+    )
+
+    assert lcd.line1 == "Temp 25C"
+    assert lcd.line2 == "Estado NORMAL"
+
+
+def test_lcd_clear_resets_internal_lines():
+    fake, lcd = create_lcd()
+
+    lcd.show(
+        "Gas detectado",
+        "EMERGENCIA",
+    )
+
+    lcd.clear()
+
+    assert lcd.line1 == ""
+    assert lcd.line2 == ""

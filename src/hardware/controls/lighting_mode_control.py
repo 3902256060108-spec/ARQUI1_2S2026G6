@@ -14,10 +14,4 @@ class LightingModeControl:
         cuando el botón es presionado.
         """
 
-        self.button.press()
-
-        mode = self.lighting_controller.toggle_mode()
-
-        self.button.release()
-
-        return mode
+        return self.lighting_controller.toggle_mode()

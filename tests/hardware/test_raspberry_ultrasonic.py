@@ -123,3 +123,116 @@ def test_rejects_negative_distance():
             distance_cm=-1,
             threshold_cm=30,
         )
+
+class FakeSequenceGPIO:
+    OUT = "OUT"
+    IN = "IN"
+    HIGH = 1
+    LOW = 0
+
+    def __init__(self, echo_values):
+        self.configured = {}
+        self.outputs = {}
+        self.echo_values = list(echo_values)
+
+    def setup(self, pin, mode):
+        self.configured[pin] = mode
+
+    def output(self, pin, value):
+        self.outputs[pin] = value
+
+    def input(self, pin):
+        if self.echo_values:
+            return self.echo_values.pop(0)
+
+        return self.LOW
+
+    def cleanup(self):
+        pass
+
+
+class FakeClock:
+    def __init__(self, values):
+        self.values = list(values)
+
+    def time(self):
+        if self.values:
+            return self.values.pop(0)
+
+        return 0.0
+
+    def sleep(self, seconds):
+        pass
+
+
+def test_read_distance_generates_measurement():
+    fake_gpio = FakeSequenceGPIO(
+        [
+            FakeSequenceGPIO.LOW,
+            FakeSequenceGPIO.HIGH,
+            FakeSequenceGPIO.HIGH,
+            FakeSequenceGPIO.LOW,
+        ]
+    )
+
+    driver = GPIODriver(fake_gpio)
+
+    clock = FakeClock(
+        [
+            0.0000,
+            0.0001,
+            0.0010,
+            0.0020,
+            0.0030,
+        ]
+    )
+
+    sensor = RaspberryUltrasonic(
+        trigger_pin=23,
+        echo_pin=24,
+        gpio_driver=driver,
+        time_provider=clock.time,
+        sleep_provider=clock.sleep,
+    )
+
+    distance = sensor.read_distance()
+
+    assert distance == pytest.approx(34.3)
+
+
+def test_read_distance_rejects_invalid_timeout():
+    fake, sensor = create_sensor()
+
+    with pytest.raises(ValueError):
+        sensor.read_distance(timeout=0)
+
+
+def test_trigger_finishes_low():
+    fake_gpio = FakeSequenceGPIO(
+        [
+            FakeSequenceGPIO.HIGH,
+            FakeSequenceGPIO.LOW,
+        ]
+    )
+
+    driver = GPIODriver(fake_gpio)
+
+    clock = FakeClock(
+        [
+            0.0,
+            0.001,
+            0.002,
+        ]
+    )
+
+    sensor = RaspberryUltrasonic(
+        trigger_pin=23,
+        echo_pin=24,
+        gpio_driver=driver,
+        time_provider=clock.time,
+        sleep_provider=clock.sleep,
+    )
+
+    sensor.read_distance()
+
+    assert fake_gpio.outputs[23] == fake_gpio.LOW

@@ -5,6 +5,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from src.hardware.actuators.led import LED
+from src.hardware.config.hardware_setup import create_hardware
+from src.hardware.core.lighting_controller import LightingController
 from src.hardware.core.lighting_controller import (
     LightingController,
     LightingMode,
@@ -123,4 +125,33 @@ def test_negative_light_value():
         controller.update_automatic(light_value=-1)
         assert False, "Se esperaba ValueError"
     except ValueError:
+        assert True
+
+def test_automatic_digital_turns_lights_on_when_dark():
+    controller, light1, light2 = create_controller()
+
+    controller.update_automatic_digital(True)
+
+    assert light1.is_on is True
+    assert light2.is_on is True
+
+
+def test_automatic_digital_turns_lights_off_when_clear():
+    controller, light1, light2 = create_controller()
+
+    controller.update_automatic_digital(True)
+    controller.update_automatic_digital(False)
+
+    assert light1.is_on is False
+    assert light2.is_on is False
+
+
+def test_automatic_digital_rejects_non_boolean_value():
+    controller, light1, light2 = create_controller()
+
+    try:
+        controller.update_automatic_digital(500)
+        assert False, "Se esperaba TypeError"
+
+    except TypeError:
         assert True

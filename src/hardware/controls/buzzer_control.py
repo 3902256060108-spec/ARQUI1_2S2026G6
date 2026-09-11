@@ -19,22 +19,21 @@ class BuzzerControl:
         """
         Silencia el buzzer.
         """
-        self.button.press()
 
         self._silenced = True
         self.buzzer.turn_off()
-
-        self.button.release()
 
     def reset_silence(self):
         """
         Permite que el buzzer pueda volver a activarse.
         """
+
         self._silenced = False
 
     def activate_alarm(self):
         """
         Activa el buzzer solamente si no ha sido silenciado.
         """
+
         if not self._silenced:
             self.buzzer.turn_on()
