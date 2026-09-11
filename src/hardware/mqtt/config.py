@@ -1,5 +1,9 @@
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 MQTT_HOST = os.getenv(
     "MQTT_BROKER",
