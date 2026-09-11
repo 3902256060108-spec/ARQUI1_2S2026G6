@@ -7,13 +7,26 @@ sys.path.insert(0, str(ROOT))
 from src.hardware.core.runtime import HardwareRuntime
 from src.hardware.core.system import HardwareSystem
 from src.hardware.core.system_state import SystemState
+from src.hardware.core.thresholds import (
+    TEMP_MAX,
+    HUMIDITY_MIN,
+    HUMIDITY_MAX,
+    DISTANCE_THRESHOLD,
+)
+
+
+TEMP_NORMAL = TEMP_MAX - 1.0
+HUMIDITY_NORMAL = (HUMIDITY_MIN + HUMIDITY_MAX) / 2
+
+DISTANCE_PRESENT = DISTANCE_THRESHOLD * 0.5
+DISTANCE_ABSENT = DISTANCE_THRESHOLD + 100.0
 
 
 class FakeDHT:
     def read(self):
         return {
-            "temperature": 25.0,
-            "humidity": 50.0,
+            "temperature": TEMP_NORMAL,
+            "humidity": HUMIDITY_NORMAL,
         }
 
 
@@ -34,7 +47,7 @@ class FakeLight:
 
 
 class FakeUltrasonic:
-    def __init__(self, distance=100.0):
+    def __init__(self, distance=DISTANCE_ABSENT):
         self.distance = distance
 
     def read_distance(self):
@@ -44,7 +57,7 @@ class FakeUltrasonic:
 def create_runtime(
     gas_alert=False,
     dark=False,
-    distance=100.0,
+    distance=DISTANCE_ABSENT,
 ):
     system = HardwareSystem()
 
@@ -64,11 +77,11 @@ def test_runtime_reads_all_sensors():
 
     result = runtime.run_once()
 
-    assert result["temperature"] == 25.0
-    assert result["humidity"] == 50.0
+    assert result["temperature"] == TEMP_NORMAL
+    assert result["humidity"] == HUMIDITY_NORMAL
     assert result["gas_alert"] is False
     assert result["is_dark"] is False
-    assert result["distance_cm"] == 100.0
+    assert result["distance_cm"] == DISTANCE_ABSENT
 
 
 def test_runtime_normal_state():
@@ -95,7 +108,7 @@ def test_runtime_detects_emergency():
 
 def test_runtime_opens_door_for_presence():
     system, runtime = create_runtime(
-        distance=3.0
+        distance=DISTANCE_PRESENT
     )
 
     runtime.run_once()
