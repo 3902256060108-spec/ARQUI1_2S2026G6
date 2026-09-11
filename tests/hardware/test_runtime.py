@@ -95,7 +95,7 @@ def test_runtime_detects_emergency():
 
 def test_runtime_opens_door_for_presence():
     system, runtime = create_runtime(
-        distance=20.0
+        distance=3.0
     )
 
     runtime.run_once()

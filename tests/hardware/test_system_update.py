@@ -81,7 +81,7 @@ def test_presence_opens_door():
         temperature=25.0,
         humidity=50.0,
         gas_alert=False,
-        distance_cm=20.0,
+        distance_cm=3.0,
         light_value=800,
     )
 

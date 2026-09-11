@@ -25,7 +25,9 @@ class FakeGPIO:
         pass
 
     def input(self, pin):
-        return self.inputs.get(pin, self.LOW)
+        # Los botones físicos están activos en LOW:
+        # HIGH = suelto, LOW = presionado.
+        return self.inputs.get(pin, self.HIGH)
 
     def cleanup(self):
         pass
@@ -58,7 +60,7 @@ def test_button_starts_released():
 def test_button_detects_press():
     fake, button = create_button()
 
-    fake.inputs[16] = fake.HIGH
+    fake.inputs[16] = fake.LOW
 
     assert button.is_pressed is True
 
@@ -66,16 +68,16 @@ def test_button_detects_press():
 def test_button_detects_release():
     fake, button = create_button()
 
-    fake.inputs[16] = fake.HIGH
+    fake.inputs[16] = fake.LOW
     assert button.is_pressed is True
 
-    fake.inputs[16] = fake.LOW
+    fake.inputs[16] = fake.HIGH
     assert button.is_pressed is False
 
 
 def test_read_returns_button_state():
     fake, button = create_button()
 
-    fake.inputs[16] = fake.HIGH
+    fake.inputs[16] = fake.LOW
 
     assert button.read() is True
