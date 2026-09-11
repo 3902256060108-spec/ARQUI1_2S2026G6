@@ -1,0 +1,587 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ARQUI1_2S2026G6 - Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f4f6f8;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+            .card h3 {
+                margin-top: 0;
+            }
+
+        .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .status {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .actuator {
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 8px 12px;
+            margin: 4px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Dashboard - ARQUI1_2S2026G6</h1>
+    <div class="subtitle">
+        Sistema de monitoreo y control del edificio
+    </div>
+
+    <div class="section">
+        <h2>Sensores</h2>
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Temperatura</h3>
+                <div class="value" id="temperatura">--</div>
+            </div>
+
+            <div class="card">
+                <h3>Humedad</h3>
+                <div class="value" id="humedad">--</div>
+            </div>
+
+            <div class="card">
+                <h3>Gas</h3>
+                <div class="value" id="gas">--</div>
+            </div>
+
+            <div class="card">
+                <h3>Distancia</h3>
+                <div class="value" id="distancia">--</div>
+            </div>
+
+            <div class="card">
+                <h3>Luz</h3>
+                <div class="value" id="luz">--</div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="section">
+        <h2>Estado global</h2>
+
+        <div class="card">
+            <div class="status" id="estado-global">--</div>
+        </div>
+    </div>
+
+
+    <div class="section">
+        <h2>Actuadores</h2>
+
+        <div class="cards">
+
+            <div class="card actuator">
+                <h3>Puerta</h3>
+                <div id="puerta">--</div>
+
+                <button onclick="enviarComando('puerta', 'ABRIR')">
+                    Abrir
+                </button>
+
+                <button onclick="enviarComando('puerta', 'CERRAR')">
+                    Cerrar
+                </button>
+            </div>
+
+
+            <div class="card actuator">
+                <h3>Luces</h3>
+                <div id="luces">--</div>
+
+                <button onclick="enviarComando('luces', 'ENCENDER')">
+                    Encender
+                </button>
+
+                <button onclick="enviarComando('luces', 'APAGAR')">
+                    Apagar
+                </button>
+            </div>
+
+
+            <div class="card actuator">
+                <h3>Ventilador</h3>
+                <div id="ventilador">--</div>
+
+                <button onclick="enviarComando('ventilador', 'ENCENDER')">
+                    Encender
+                </button>
+
+                <button onclick="enviarComando('ventilador', 'APAGAR')">
+                    Apagar
+                </button>
+            </div>
+
+
+            <div class="card actuator">
+                <h3>Alarma</h3>
+                <div id="alarma">--</div>
+
+                <button onclick="enviarComando('alarma', 'ACTIVAR')">
+                    Activar
+                </button>
+
+                <button onclick="enviarComando('alarma', 'DESACTIVAR')">
+                    Desactivar
+                </button>
+            </div>
+
+        </div>
+
+        <div class="message" id="command-message"></div>
+    </div>
+
+
+    <div class="section">
+        <h2>ARM64</h2>
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Máximo</h3>
+                <div class="value" id="arm64-max">--</div>
+            </div>
+
+            <div class="card">
+                <h3>Mínimo</h3>
+                <div class="value" id="arm64-min">--</div>
+            </div>
+
+            <div class="card">
+                <h3>Promedio</h3>
+                <div class="value" id="arm64-avg">--</div>
+            </div>
+
+            <div class="card">
+                <h3>Cantidad</h3>
+                <div class="value" id="arm64-count">--</div>
+            </div>
+
+        </div>
+    </div>
+    <div class="section">
+        <h2>Historial de sensores</h2>
+
+        <div class="card">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>Sensor</th>
+                        <th>Valor</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+
+                <tbody id="sensor-history">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="section">
+        <h2>Historial de eventos</h2>
+
+        <div class="card">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Descripción</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+
+                <tbody id="event-history">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="section">
+        <h2>Historial de comandos</h2>
+
+        <div class="card">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>Dispositivo</th>
+                        <th>Acción</th>
+                        <th>Origen</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+
+                <tbody id="command-history">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <h2>Gráfica de sensores</h2>
+
+    <div class="card">
+        <label for="sensor-select">Seleccionar sensor:</label>
+
+        <select id="sensor-select" onchange="dibujarGrafica()">
+            <option value="temperatura">Temperatura</option>
+            <option value="humedad">Humedad</option>
+            <option value="gas">Gas</option>
+            <option value="distancia">Distancia</option>
+            <option value="luz">Luz</option>
+        </select>
+
+        <canvas id="sensor-chart" width="800" height="300"></canvas>
+    </div>
+    <script>
+
+        async function cargarDashboard() {
+
+            try {
+
+                const sensores = await fetch("/api/sensores")
+                    .then(response => response.json());
+
+                for (const sensor in sensores) {
+
+                    const elemento = document.getElementById(sensor);
+
+                    if (elemento) {
+                        elemento.textContent =
+                            sensores[sensor].valor;
+                    }
+                }
+
+
+                const estado = await fetch("/api/estado")
+                    .then(response => response.json());
+
+                document.getElementById("estado-global")
+                    .textContent = estado.estado;
+
+
+                const actuadores = await fetch("/api/actuadores")
+                    .then(response => response.json());
+
+                for (const dispositivo in actuadores) {
+
+                    const elemento =
+                        document.getElementById(dispositivo);
+
+                    if (elemento) {
+                        elemento.textContent =
+                            actuadores[dispositivo].estado;
+                    }
+                }
+
+
+                const arm64Response =
+                    await fetch("/api/arm64");
+
+                if (arm64Response.ok) {
+
+                    const arm64 =
+                        await arm64Response.json();
+
+                    if (arm64) {
+
+                        document.getElementById("arm64-max")
+                            .textContent = arm64.max;
+
+                        document.getElementById("arm64-min")
+                            .textContent = arm64.min;
+
+                        document.getElementById("arm64-avg")
+                            .textContent = arm64.avg;
+
+                        document.getElementById("arm64-count")
+                            .textContent = arm64.count;
+                    }
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Error cargando dashboard:",
+                    error
+                );
+            }
+        }
+
+
+        async function enviarComando(dispositivo, accion) {
+
+            const mensaje =
+                document.getElementById("command-message");
+
+            mensaje.textContent = "Enviando comando...";
+
+            try {
+
+                const response = await fetch("/api/comandos", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        dispositivo: dispositivo,
+                        accion: accion
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Error enviando comando");
+                }
+
+                mensaje.textContent =
+                    `Comando enviado: ${dispositivo} → ${accion}`;
+
+
+            } catch (error) {
+
+                mensaje.textContent =
+                    `Error: ${error.message}`;
+
+                console.error(
+                    "Error enviando comando:",
+                    error
+                );
+            }
+        }
+        async function cargarHistorialSensores() {
+
+            const response =
+                await fetch("/api/sensores/historial?limit=20");
+
+            const datos = await response.json();
+
+            const tabla =
+                document.getElementById("sensor-history");
+
+            tabla.innerHTML = "";
+
+            datos.forEach(item => {
+
+                const fila = document.createElement("tr");
+
+                fila.innerHTML = `
+                <td>${item.sensor}</td>
+                <td>${item.valor}</td>
+                <td>${new Date(item.timestamp).toLocaleString()}</td>
+            `;
+
+                tabla.appendChild(fila);
+            });
+        }
+
+
+        async function cargarHistorialEventos() {
+
+            const response =
+                await fetch("/api/eventos?limit=20");
+
+            const datos = await response.json();
+
+            const tabla =
+                document.getElementById("event-history");
+
+            tabla.innerHTML = "";
+
+            datos.forEach(item => {
+
+                const fila = document.createElement("tr");
+
+                fila.innerHTML = `
+                <td>${item.tipo}</td>
+                <td>${item.estado}</td>
+                <td>${item.descripcion}</td>
+                <td>${new Date(item.timestamp).toLocaleString()}</td>
+            `;
+
+                tabla.appendChild(fila);
+            });
+        }
+
+
+        async function cargarHistorialComandos() {
+
+            const response =
+                await fetch("/api/comandos?limit=20");
+
+            const datos = await response.json();
+
+            const tabla =
+                document.getElementById("command-history");
+
+            tabla.innerHTML = "";
+
+            datos.forEach(item => {
+
+                const fila = document.createElement("tr");
+
+                fila.innerHTML = `
+                <td>${item.dispositivo}</td>
+                <td>${item.accion}</td>
+                <td>${item.origen}</td>
+                <td>${new Date(item.timestamp).toLocaleString()}</td>
+            `;
+
+                tabla.appendChild(fila);
+            });
+        }
+
+
+        async function dibujarGrafica() {
+            const sensor = document.getElementById("sensor-select").value;
+
+            const response = await fetch("/api/sensores/historial?limit=20");
+            const datos = await response.json();
+
+            const datosSensor = datos
+                .filter(item => item.sensor === sensor)
+                .reverse();
+
+            const canvas = document.getElementById("sensor-chart");
+            const ctx = canvas.getContext("2d");
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (datosSensor.length === 0) {
+                ctx.font = "16px Arial";
+                ctx.fillText("No hay datos disponibles para este sensor", 20, 40);
+                return;
+            }
+
+            const margen = 50;
+            const ancho = canvas.width - margen * 2;
+            const alto = canvas.height - margen * 2;
+
+            const valores = datosSensor.map(item => Number(item.valor));
+
+            const minimo = Math.min(...valores);
+            const maximo = Math.max(...valores);
+
+            const rango = maximo - minimo || 1;
+
+            // Ejes
+            ctx.beginPath();
+            ctx.moveTo(margen, margen);
+            ctx.lineTo(margen, canvas.height - margen);
+            ctx.lineTo(canvas.width - margen, canvas.height - margen);
+            ctx.stroke();
+
+            // Línea de datos
+            ctx.beginPath();
+
+            datosSensor.forEach((item, index) => {
+                const x = margen + (index / Math.max(datosSensor.length - 1, 1)) * ancho;
+
+                const y =
+                    canvas.height -
+                    margen -
+                    ((Number(item.valor) - minimo) / rango) * alto;
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.stroke();
+
+            // Puntos
+            datosSensor.forEach((item, index) => {
+                const x = margen + (index / Math.max(datosSensor.length - 1, 1)) * ancho;
+
+                const y =
+                    canvas.height -
+                    margen -
+                    ((Number(item.valor) - minimo) / rango) * alto;
+
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Valores mínimo y máximo
+            ctx.font = "14px Arial";
+            ctx.fillText(`Máximo: ${maximo}`, margen, 20);
+            ctx.fillText(`Mínimo: ${minimo}`, margen + 120, 20);
+        }
+
+        cargarDashboard();
+        dibujarGrafica();
+        setInterval(cargarDashboard, 5000);
+        setInterval(dibujarGrafica, 5000);
+        cargarHistorialSensores();
+        cargarHistorialEventos();
+        cargarHistorialComandos();
+
+        setInterval(cargarHistorialSensores, 5000);
+        setInterval(cargarHistorialEventos, 5000);
+        setInterval(cargarHistorialComandos, 5000);
+    </script>
+
+</body>
+</html>

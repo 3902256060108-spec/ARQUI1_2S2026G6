@@ -81,5 +81,117 @@ class Repository:
 
         return self._collection("system_status").insert_one(document)
 
+    def insert_actuator_status(
+        self,
+        dispositivo: str,
+        estado: str
+    ):
+        document = {
+            "dispositivo": dispositivo,
+            "estado": estado,
+            "timestamp": datetime.now(timezone.utc)
+        }
 
+        return self._collection("actuator_status").insert_one(document)
+
+    def get_latest_sensor_readings(self):
+        collection = self._collection("sensor_readings")
+
+        sensors = [
+            "temperatura",
+            "humedad",
+            "gas",
+            "distancia",
+            "luz"
+        ]
+
+        result = {}
+
+        for sensor in sensors:
+            document = collection.find_one(
+                {"sensor": sensor},
+                sort=[("timestamp", -1)]
+            )
+
+            if document:
+                document.pop("_id", None)
+                result[sensor] = document
+
+        return result
+
+    def get_latest_system_status(self):
+        document = self._collection("system_status").find_one(
+            {},
+            sort=[("timestamp", -1)]
+        )
+
+        if document:
+            document.pop("_id", None)
+
+        return document
+
+    def get_latest_actuator_statuses(self):
+        collection = self._collection("actuator_status")
+
+        devices = [
+            "puerta",
+            "luces",
+            "ventilador",
+            "alarma"
+        ]
+
+        result = {}
+
+        for dispositivo in devices:
+            document = collection.find_one(
+                {"dispositivo": dispositivo},
+                sort=[("timestamp", -1)]
+            )
+
+            if document:
+                document.pop("_id", None)
+                result[dispositivo] = document
+
+        return result
+
+    def get_sensor_history(self, limit: int = 20):
+        documents = list(
+            self._collection("sensor_readings")
+            .find({}, {"_id": 0})
+            .sort("timestamp", -1)
+            .limit(limit)
+        )
+
+        return documents
+
+    def get_event_history(self, limit: int = 20):
+        documents = list(
+            self._collection("events")
+            .find({}, {"_id": 0})
+            .sort("timestamp", -1)
+            .limit(limit)
+        )
+
+        return documents
+
+    def get_latest_arm64_result(self):
+        document = self._collection("arm64_results").find_one(
+            {},
+            sort=[("timestamp", -1)]
+        )
+
+        if document:
+            document.pop("_id", None)
+
+        return document
+
+    def get_command_history(self, limit: int = 20):
+        documents = list(
+            self._collection("commands")
+            .find({}, {"_id": 0})
+            .sort("timestamp", -1)
+            .limit(limit)
+        )
+
+        return documents
 repository = Repository()
