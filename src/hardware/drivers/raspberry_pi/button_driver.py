@@ -10,7 +10,7 @@ class RaspberryButton:
         self.pin = pin
         self.gpio = gpio_driver
 
-        self.gpio.setup_input(self.pin)
+        self.gpio.setup_input_pullup(self.pin)
 
     @property
     def is_pressed(self):

@@ -10,12 +10,26 @@ class RaspberryMQTTClient:
         host,
         port=1883,
         keepalive=60,
+        username=None,
+        password=None,
+        tls=False,
     ):
         self.host = host
         self.port = port
         self.keepalive = keepalive
 
         self.client = mqtt_module.Client()
+
+        # Configurar credenciales MQTT
+        if username and password:
+            self.client.username_pw_set(
+                username,
+                password,
+            )
+
+        # Configurar TLS para EMQX Cloud
+        if tls:
+            self.client.tls_set()
 
         self._message_handler = None
 

@@ -34,6 +34,9 @@ from src.hardware.mqtt.config import (
     MQTT_HOST,
     MQTT_PORT,
     MQTT_KEEPALIVE,
+    MQTT_USERNAME,
+    MQTT_PASSWORD,
+    MQTT_TLS,
 )
 from src.hardware.drivers.raspberry_pi.rpi_gpio_adapter import (
     load_rpi_gpio,
@@ -139,6 +142,9 @@ def main():
                 host=MQTT_HOST,
                 port=MQTT_PORT,
                 keepalive=MQTT_KEEPALIVE,
+                username=MQTT_USERNAME,
+                password=MQTT_PASSWORD,
+                tls=MQTT_TLS,
             )
 
             mqtt_publisher = MQTTPublisher(

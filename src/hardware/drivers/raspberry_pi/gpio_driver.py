@@ -20,6 +20,13 @@ class GPIODriver:
     def setup_input(self, pin):
         self.gpio.setup(pin, self.gpio.IN)
 
+    def setup_input_pullup(self, pin):
+        self.gpio.setup(
+            pin,
+            self.gpio.IN,
+            pull_up_down=self.gpio.PUD_UP,
+        )
+
     def write_high(self, pin):
         self.gpio.output(pin, self.gpio.HIGH)
 
